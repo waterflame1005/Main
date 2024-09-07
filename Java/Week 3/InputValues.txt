@@ -1,0 +1,11 @@
+Part 1
+double yearlyInterestRate = 0.15;
+double loanYears = 2;
+double loanAmount = 100.25;
+
+Part 2
+double investorAmount = 0.15;
+double presentValue = 2.1;
+double growthRate = 0.1;
+double investorPercentage = 0.01;
+double time = 5.0;

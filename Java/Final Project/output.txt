@@ -1,0 +1,204 @@
+This is the top level menu. Please select one of the following options:
+1. Inventory Actions
+2. Sales Actions
+3. Exit
+2
+Please add at least one product before proceeding to sales
+This is the top level menu. Please select one of the following options:
+1. Inventory Actions
+2. Sales Actions
+3. Exit
+1
+This is the inventory menu. Please select one of the following options:
+1. Add product
+2. View inventory
+3. Modify product properties
+4. Return to top menu
+2
+Please add at least one product before viewing inventory
+This is the inventory menu. Please select one of the following options:
+1. Add product
+2. View inventory
+3. Modify product properties
+4. Return to top menu
+1
+Please enter the name of the product you wish to add:
+Burger
+Please enter the quantity of the product you wish to add:
+100
+Please enter the cost of the product you wish to add:
+3.99
+Product Burger has been added to the system.
+This is the inventory menu. Please select one of the following options:
+1. Add product
+2. View inventory
+3. Modify product properties
+4. Return to top menu
+1
+Please enter the name of the product you wish to add:
+Salad
+Please enter the quantity of the product you wish to add:
+2
+Please enter the cost of the product you wish to add:
+2.99
+Product Salad has been added to the system.
+This is the inventory menu. Please select one of the following options:
+1. Add product
+2. View inventory
+3. Modify product properties
+4. Return to top menu
+1
+Please enter the name of the product you wish to add:
+Water Bottle
+Please enter the quantity of the product you wish to add:
+200
+Please enter the cost of the product you wish to add:
+1.99
+Product Water Bottle has been added to the system.
+This is the inventory menu. Please select one of the following options:
+1. Add product
+2. View inventory
+3. Modify product properties
+4. Return to top menu
+2
+Here are the quantities available of each item:
+Burger: 100
+Salad: 2
+Water Bottle: 200
+This is the inventory menu. Please select one of the following options:
+1. Add product
+2. View inventory
+3. Modify product properties
+4. Return to top menu
+3
+Which product do you wish to modify?
+1: Burger
+2: Salad
+3: Water Bottle
+2
+What do you want to modify about product 2
+1: Name
+2: Quantity Available
+3: Cost
+4: Cancel Modification
+3
+What do you wish to change the cost to?
+11.99
+You have successfully changed the cost
+This is the inventory menu. Please select one of the following options:
+1. Add product
+2. View inventory
+3. Modify product properties
+4. Return to top menu
+4
+This is the top level menu. Please select one of the following options:
+1. Inventory Actions
+2. Sales Actions
+3. Exit
+2
+This is the sales menu. Please select one of the following options:
+1. View a list of products and properties
+2. Buy an amount of product
+3. Return an amount of product
+4. Return to top menu
+1
+Here is a list of all products
+Item 0:
+Name: Burger
+Quantity Available: 100
+Cost: 3.99
+Item 1:
+Name: Salad
+Quantity Available: 2
+Cost: 11.99
+Item 2:
+Name: Water Bottle
+Quantity Available: 200
+Cost: 1.99
+This is the sales menu. Please select one of the following options:
+1. View a list of products and properties
+2. Buy an amount of product
+3. Return an amount of product
+4. Return to top menu
+2
+Please enter the number corresponding to the product you wish to buy
+2
+How many Salad do you want to buy?
+3
+Sorry. We only have 2 available units of Salad. Please rebuy the product.
+This is the sales menu. Please select one of the following options:
+1. View a list of products and properties
+2. Buy an amount of product
+3. Return an amount of product
+4. Return to top menu
+2
+Please enter the number corresponding to the product you wish to buy
+1
+How many Burger do you want to buy?
+99
+The cost of 99 Burger will cost $395.01000000000005. Type 1 if you wish to proceed, or 0 if you wish to cancel.
+1
+Thank you for your purchase.
+This is the sales menu. Please select one of the following options:
+1. View a list of products and properties
+2. Buy an amount of product
+3. Return an amount of product
+4. Return to top menu
+1
+Here is a list of all products
+Item 0:
+Name: Burger
+Quantity Available: 1
+Cost: 3.99
+Item 1:
+Name: Salad
+Quantity Available: 2
+Cost: 11.99
+Item 2:
+Name: Water Bottle
+Quantity Available: 200
+Cost: 1.99
+This is the sales menu. Please select one of the following options:
+1. View a list of products and properties
+2. Buy an amount of product
+3. Return an amount of product
+4. Return to top menu
+3
+Please enter the number corresponding to the product you wish to return
+2
+How many Salad do you want to return?
+9999999
+You will recieve $1.1989998801E8 for the return of 9999999 Salad. Type 1 if you wish to proceed, or 0 if you wish to cancel.
+1
+You have successfully been given a refund.
+This is the sales menu. Please select one of the following options:
+1. View a list of products and properties
+2. Buy an amount of product
+3. Return an amount of product
+4. Return to top menu
+1
+Here is a list of all products
+Item 0:
+Name: Burger
+Quantity Available: 1
+Cost: 3.99
+Item 1:
+Name: Salad
+Quantity Available: -9999997
+Cost: 11.99
+Item 2:
+Name: Water Bottle
+Quantity Available: 200
+Cost: 1.99
+This is the sales menu. Please select one of the following options:
+1. View a list of products and properties
+2. Buy an amount of product
+3. Return an amount of product
+4. Return to top menu
+4
+This is the top level menu. Please select one of the following options:
+1. Inventory Actions
+2. Sales Actions
+3. Exit
+3
+You have exited

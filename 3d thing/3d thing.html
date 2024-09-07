@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>3d game</title>
+    <style>
+        #canvas {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin: auto;
+        }
+
+        p {
+            font-size: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <p id="coordinates"></p>
+    <p id="chat"> </p>
+    <canvas id='canvas' width="800" height="600"></canvas>
+
+    <script type="text/javaScript">
+        var sx = 400
+        var sy = 300
+        var fov = 50
+        var done = false
+        var onGround = true
+        var onIce = false
+        var zWall = true
+        var xWall = true
+        var position = [50, 160, 50]        
+        var rotation = [0, 0]
+        var velocity = [0, 0, 0]
+        var playerSize = [30, 160, 30, 20]
+        var speed = 1.7
+        var context = canvas.getContext('2d');
+        var release = true
+        var timer = 0
+        var deaths = 0
+        var checkpoint = [50, 180, 50]
+        var my_gradient = context.createRadialGradient(400, 300, 0, 400, 300, 400);
+        my_gradient.addColorStop(0, "rgba(0,0,0,0)");
+        my_gradient.addColorStop(1, "black");
+        var blockColor = "rgb(128, 128, 128)"
+        var blue = "rgb(0, 0, 64)"
+        var green = "rgb(0, 64, 0)"
+        var red = "rgb(64, 0, 0)"
+        var doorColor = "rgb(64, 64, 64)"
+        var tileColor = "rgb(128, 128, 128)"
+        var checkpointColor = "rgb(244, 232, 104)"
+        var iceColor = "rgb(128, 128, 232)"
+        var backgroundColor = "rgb(0, 0, 0)"
+        var bouncePadColor = "rgb(120, 212, 120)"
+        var greenEndColor = "rgb(0, 255, 0)"
+        var redEndColor = "rgb(255, 0, 0)"
+        var blueEndColor = "rgb(0, 0, 255)"
+        var black = "rgb(0, 0, 0)"
+        var white = "rgb(255, 255, 255)"
+        var greenCompleted = false
+        var redCompleted = false
+        var blueCompleted = false
+        var doorUnlocked = false
+        var tempDoor = []
+        var chatLogs = 
+        [
+            "Welcome! This is The chat box that will display important information during the game",
+            "<br>use wasd to move around",
+            "<br>arrow keys to look around",
+            "<br>space to Jump",
+            "<br>left shift to sprint",
+            "<br>r to go back to spawn if you get stuck",
+            "<br>light yellow blocks are checkpoints",
+            "<br>lime green blocks are bounce pads that will bounce you back up when you hit them",
+            "<br>light blue blocks are ice blocks that will reduce your friction",
+            "<br>if you find the game to be too hard, use setCheckpoint() in console to set a checkpoint"
+        ]
+        var buttonsHeld = []
+        //right, left, up, sprint, forward, backward, up, down, left, right, sprint, die
+
+        var objects = [
+            //door
+            ['cube',200,0,800, 100, 100, 100, blockColor, "rgb(0, 0, 0)"],
+            ['cube',200,100,800, 100, 100, 100, blockColor, "rgb(0, 0, 0)"],
+            ['cube',200,200,800, 100, 100, 100, blockColor, "rgb(0, 0, 0)"],
+            ['cube',-200,0,800, 100, 100, 100, blockColor, "rgb(0, 0, 0)"],
+            ['cube',-200,100,800, 100, 100, 100, blockColor, "rgb(0, 0, 0)"],
+            ['cube',-200,200,800, 100, 100, 100, blockColor, "rgb(0, 0, 0)"],
+            ['cube',-100,300,800, 100, 100, 100, blockColor, "rgb(0, 0, 0)"],
+            ['cube',0,300,800, 100, 100, 100, blockColor, "rgb(0, 0, 0)"],
+            ['cube',100,300,800, 100, 100, 100, blockColor, "rgb(0, 0, 0)"],
+            ['cube',0,0,800, 100, 100, 100, doorColor, doorColor],
+            ['cube',-100,0,800, 100, 100, 100, doorColor, doorColor],
+            ['cube',100,0,800, 100, 100, 100, doorColor, doorColor],
+            ['cube',-100,200,800, 100, 100, 100, doorColor, doorColor],
+            ['cube',0,200,800, 100, 100, 100, doorColor, doorColor],
+            ['cube',100,200,800, 100, 100, 100, doorColor, doorColor],
+            ['cube',-100,100,800, 100, 100, 100, blue, doorColor],
+            ['cube',0,100,800, 100, 100, 100, green, doorColor],
+            ['cube',100,100,800, 100, 100, 100, red, doorColor],
+            //green part
+
+            ['cube',0,0,-900, 100, 100, 100, green, blockColor],
+            ['cube',0,100,-1200, 100, 100, 100, green, blockColor],
+            ['cube',0,200,-1500, 100, 100, 100, green, blockColor],
+            ['cube',0,300,-1800, 100, 100, 100, green, blockColor],
+            ['cube',0,400,-2100, 100, 100, 100, green, blockColor],
+
+            ['cube',-100,500,-1800, 100, 100, 100,green, blockColor],
+            ['cube',-100,600,-1500, 100, 100, 100,green, blockColor],
+            ['cube',-100,700,-1200, 100, 100, 100,green, blockColor],
+            ['cube',-100,800,-900, 100, 100, 100,green, blockColor],
+            ['cube',100,500,-1800, 100, 100, 100,green, blockColor],
+            ['cube',100,600,-1500, 100, 100, 100,green, blockColor],
+            ['cube',100,700,-1200, 100, 100, 100,green, blockColor],
+            ['cube',100,800,-900, 100, 100, 100,green, blockColor],
+
+            ['cube',0,900,-1200, 100, 100, 100, green, blockColor],
+            ['cube',0,1000,-1500, 100, 100, 100, green, blockColor],
+            ['cube',0,1100,-1800, 100, 100, 100, green, blockColor],
+            ['cube',0,1200,-2100, 100, 100, 100, green, blockColor],
+            ['cube',0,300,-2900, 100, 100, 100, bouncePadColor, bouncePadColor],
+
+            ['cube',0,800,-3300, 100, 100, 100, green, blockColor],
+            ['cube',0,400,-3900, 100, 100, 100, bouncePadColor, bouncePadColor],
+
+            ['cube',200,600,-4000, 100, 100, 100, green, blockColor],
+            ['cube',200,700,-3800, 100, 100, 100, green, blockColor],
+            ['cube',200,800,-3800, 100, 100, 100, green, blockColor],
+            ['cube',200,900,-3800, 100, 100, 100, green, blockColor],
+            ['cube',200,1000,-3800, 100, 100, 100, green, blockColor],
+            ['cube',100,700,-3800, 100, 100, 100, green, blockColor],
+            ['cube',100,800,-3800, 100, 100, 100, green, blockColor],
+            ['cube',100,900,-3800, 100, 100, 100, green, blockColor],
+            ['cube',100,1000,-3800, 100, 100, 100, green, blockColor],
+            ['cube',0,700,-4300, 100, 100, 100, green, blockColor],
+            ['cube',-200,700,-4700, 100, 100, 100, checkpointColor, checkpointColor],
+            ['cube',-200,200,-5300, 100, 100, 100, bouncePadColor, bouncePadColor],
+            ['cube',-400,400,-5700, 100, 100, 100, green, blockColor],
+            ['cube',-700,500,-5600, 100, 100, 100, green, blockColor],
+            ['cube',-800,600,-5300, 100, 100, 100, green, blockColor],
+            ['cube',-900,700,-5000, 100, 100, 100, green, blockColor],
+            ['cube',-700,800,-4800, 100, 100, 100, green, blockColor],
+            ['cube',-400,900,-4700, 100, 100, 100, green, blockColor],
+            ['cube',-100,600,-5700, 100, 100, 100, green, blockColor],
+            ['cube',100,700,-5500, 100, 100, 100, green, blockColor],
+            ['cube',300,800,-5300, 100, 100, 100, green, blockColor],
+            ['cube',300,900,-5000, 100, 100, 100, green, blockColor],
+            ['cube',100,1000,-4800, 100, 100, 100, green, blockColor],
+            ['cube',-200,1100,-4700, 100, 100, 100, green, blockColor],
+            ['cube',-200,1200,-4400, 100, 100, 100, green, blockColor],
+            ['cube',-500,1300,-4400, 100, 100, 100, green, blockColor],
+            ['cube',-500,1400,-4700, 100, 100, 100, green, blockColor],
+            ['cube',-400,800,-5700, 100, 100, 100, green, blockColor],
+            ['cube',-700,900,-5600, 100, 100, 100, green, blockColor],
+            ['cube',-400,1000,-5800, 100, 100, 100, green, blockColor],
+            ['cube',-100,1100,-5700, 100, 100, 100, green, blockColor],
+            ['cube',-400,1200,-5900, 100, 100, 100, green, blockColor],
+            ['cube',-400,1300,-6200, 100, 100, 100, checkpointColor, checkpointColor],
+            ['cube',-400,700,-6900, 100, 100, 100, bouncePadColor, bouncePadColor],
+            ['cube',-400,600,-7600, 100, 100, 100, bouncePadColor, bouncePadColor],
+            ['cube',100,300,-7900, 100, 100, 100, bouncePadColor, bouncePadColor],
+            ['cube',500,100,-8300, 100, 100, 100, bouncePadColor, bouncePadColor],
+            ['cube',800,-100,-8700, 100, 100, 100, bouncePadColor, bouncePadColor],
+            ['cube',900,100,-9000, 100, 100, 100, green, blockColor],
+            ['cube',900,200,-9300, 100, 100, 100, green, blockColor],
+            ['cube',900,300,-9700, 100, 100, 100, green, blockColor],
+            ['cube',900,400,-10100, 100, 100, 100, green, blockColor],
+            ['cube',900,500,-10500, 100, 100, 100, green, blockColor],
+            ['cube',900,500,-11000, 100, 100, 100, green, blockColor],
+            ['cube',900,500,-11500, 100, 100, 100, green, blockColor],
+            ['cube',900,500,-11600, 100, 100, 100, green, blockColor],
+            ['cube',900,500,-11700, 100, 100, 100, green, blockColor],
+            ['cube',900,500,-11800, 100, 100, 100, greenEndColor, greenEndColor],
+
+            //red parkour
+            ['cube',1000,0,100, 100, 100, 100, red, blockColor],
+            ['cube',1200,100,-100, 100, 100, 100, red, blockColor],
+            ['cube',1400,200,200, 100, 100, 100, red, blockColor],
+            ['cube',1700,300,0, 100, 100, 100, checkpointColor, checkpointColor],
+            ['cube',1900,400,0, 100, 100, 100, red, blockColor],
+            ['cube',1800,500,0, 100, 100, 100, checkpointColor, checkpointColor],
+            ['cube',2200,600,0, 100, 100, 100, red, blockColor],
+            ['cube',2600,700,0, 100, 100, 100, red, blockColor],
+            ['cube',2600,700,0, 100, 100, 100, red, blockColor],
+            ['cube',2700,700,0, 100, 100, 100, red, blockColor],
+            ['cube',2700,800,0, 100, 100, 100, red, blockColor],
+            ['cube',2700,900,0, 100, 100, 100, checkpointColor, checkpointColor],
+            ['cube',2800,700,0, 100, 100, 100, red, blockColor],
+            ['cube',2900,800,0, 100, 100, 100, red, blockColor],
+            ['cube',3000,1000,0, 100, 100, 100, red, blockColor],
+            ['cube',3100,1000,0, 100, 100, 100, red, blockColor],
+            ['cube',3100,1100,0, 100, 100, 100, red, blockColor],
+            ['cube',3100,1200,0, 100, 100, 100, red, blockColor],
+            ['cube',3200,1000,0, 100, 100, 100, red, blockColor],
+            ['cube',3200,1100,0, 100, 100, 100, red, blockColor],
+            ['cube',3200,1200,0, 100, 100, 100, checkpointColor, checkpointColor],
+            ['cube',3300,1000,0, 100, 100, 100, red, blockColor],
+            ['cube',3600,1100,0, 100, 100, 100, red, blockColor],
+            ['cube',3600,1300,-100, 100, 100, 100, red, blockColor],
+            ['cube',3600,1400,100, 100, 100, 100, red, blockColor],
+            ['cube',4000,1500,100, 100, 100, 100, red, blockColor],
+            ['cube',4000,1600,-100, 100, 100, 100, red, blockColor],
+            ['cube',4400,1700,-100, 100, 100, 100, red, blockColor],
+            ['cube',4400,1800,100, 100, 100, 100, red, blockColor],
+            ['cube',4000,1900,100, 100, 100, 100, red, blockColor],
+            ['cube',4000,2000,-100, 100, 100, 100, red, blockColor],
+            ['cube',3600,2100,-100, 100, 100, 100, red, blockColor],
+            ['cube',3600,2200, 100, 100, 100, 100, red, blockColor],
+            ['cube',3100,2200,0, 100, 100, 100, checkpointColor, checkpointColor],
+            ['cube',3000,2200,0, 100, 100, 100, red, blockColor],
+            ['cube',2900,2200,0, 100, 100, 100, red, blockColor],
+            ['cube',2800,2200,0, 100, 100, 100, red, blockColor],
+            ['cube',2700,2200,0, 100, 100, 100, red, blockColor],
+            ['cube',2600,2200,0, 100, 100, 100, red, blockColor],
+            ['cube',2500,2200,0, 100, 100, 100, red, blockColor],
+            ['cube',2600,2300,0, 100, 100, 100, red, blockColor],
+            ['cube',2700,2300,0, 100, 100, 100, red, blockColor],
+            ['cube',2700,2400,0, 100, 100, 100, red, blockColor],
+            ['cube',2600,2400,0, 100, 100, 100, red, blockColor],
+            ['cube',2400,2200,0, 100, 100, 100, red, blockColor],
+            ['cube',2400,2300,0, 100, 100, 100, red, blockColor],
+            ['cube',2400,2400,0, 100, 100, 100, red, blockColor],
+            ['cube',2300,2200,0, 100, 100, 100, red, blockColor],
+            ['cube',2300,2300,0, 100, 100, 100, red, blockColor],
+            ['cube',2300,2400,0, 100, 100, 100, red, blockColor],
+            ['cube',2200,2200,0, 100, 100, 100, checkpointColor, checkpointColor],
+            ['cube',1900,2300,0, 100, 100, 100, red, blockColor],
+            ['cube',2400,2500,0, 100, 100, 100, red, blockColor],
+            ['cube',2400,2600,0, 100, 100, 100, red, blockColor],
+            ['cube',2500,2600,0, 100, 100, 100, checkpointColor, checkpointColor],
+            ['cube',2600,2500,0, 100, 100, 100, red, blockColor],
+            ['cube',2600,2600,0, 100, 100, 100, red, blockColor],
+            ['cube',2300,2400,-500, 100, 100, 100, red, blockColor],
+            ['cube',2700,2400,-500, 100, 100, 100, red, blockColor],
+            ['cube',3000,2500,0, 100, 100, 100, red, blockColor],
+            ['cube',2500,2700,-400, 100, 100, 100, red, blockColor],
+            ['cube',2500,2800,-800, 100, 100, 100, red, blockColor],
+            ['cube',2500,2900,-1200, 100, 100, 100, red, blockColor],
+            ['cube',2500,3000,-1600, 100, 100, 100, red, blockColor],
+            ['cube',2500,3100,-2000, 100, 100, 100, red, blockColor],
+            ['cube',2500,3200,-2400, 100, 100, 100, red, blockColor],
+            ['cube',2500,3300,-2800, 100, 100, 100, red, blockColor],
+            ['cube',2500,3300,-3200, 100, 100, 100, red, blockColor],
+            ['cube',2500,3300,-3600, 100, 100, 100, red, blockColor],
+            ['cube',2500,3300,-4000, 100, 100, 100, red, blockColor],
+            ['cube',2600,3300,-4400, 100, 100, 100, red, blockColor],
+            ['cube',2700,3300,-4800, 100, 100, 100, red, blockColor],
+            ['cube',2900,3300,-5200, 100, 100, 100, red, blockColor],
+            ['cube',3100,3300,-5600, 100, 100, 100, red, blockColor],
+            ['cube',3400,3300,-5900, 100, 100, 100, red, blockColor],
+            ['cube',3700,3300,-6200, 100, 100, 100, redEndColor, redEndColor],
+
+
+            //blue section
+            ['cube',-900,0,0, 100, 100, 100, iceColor, iceColor],
+            ['cube',-1400,0,0, 100, 100, 100, blue, blockColor],
+            ['cube',-1600,100,-200, 100, 100, 100, blue, blockColor],
+            ['cube',-1600,200,200, 100, 100, 100, blue, blockColor],
+            ['cube',-1900,300,200, 100, 100, 100, iceColor, iceColor],
+            ['cube',-2300,400,200, 100, 100, 100, iceColor, iceColor],
+            ['cube',-2800,500,200, 100, 100, 100, checkpointColor, checkpointColor],
+            ['cube',-3000,600,500, 100, 100, 100, blue, blockColor],
+            ['cube',-3200,700,200, 100, 100, 100, blue, blockColor],
+            ['cube',-3400,800,-100, 100, 100, 100, blue, blockColor],
+            ['cube',-3700,900,-300, 100, 100, 100, blue, blockColor],
+            ['cube',-4000,1000,-400, 100, 100, 100, blue, blockColor],
+            ['cube',-4300,1100,-400, 100, 100, 100, blue, blockColor],
+            ['cube',-4600,1200,-300, 100, 100, 100, blue, blockColor],
+            ['cube',-4700,1300,0, 100, 100, 100, blue, blockColor],
+            ['cube',-4800,1400,300, 100, 100, 100, blue, blockColor],
+            ['cube',-4600,1500,500, 100, 100, 100, blue, blockColor],
+            ['cube',-4300,1600,700, 100, 100, 100, blue, blockColor],
+            ['cube',-4000,1700,700, 100, 100, 100, blue, blockColor],
+            ['cube',-3700,1800,600, 100, 100, 100, blue, blockColor],
+            ['cube',-3600,1900,300, 100, 100, 100, blue, blockColor],
+            ['cube',-3600,2000,0, 100, 100, 100, blue, blockColor],
+            ['cube',-3800,2100,-200, 100, 100, 100, blue, blockColor],
+            ['cube',-4100,2200,-400, 100, 100, 100, blue, blockColor],
+            ['cube',-4300,2300,-600, 100, 100, 100, blue, blockColor],
+            ['cube',-4400,2400,-900, 100, 100, 100, blue, blockColor],
+            ['cube',-4300,2500,-1200, 100, 100, 100, blue, blockColor],
+            ['cube',-4000,2600,-1400, 100, 100, 100, blue, blockColor],
+            ['cube',-3700,2700,-1600, 100, 100, 100, blue, blockColor],
+            ['cube',-3400,2800,-1700, 100, 100, 100, blue, blockColor],
+            ['cube',-3100,2900,-1700, 100, 100, 100, blue, blockColor],
+            ['cube',-2800,3000,-1700, 100, 100, 100, blue, blockColor],
+            ['cube',-2600,3100,-1500, 100, 100, 100, blue, blockColor],
+            ['cube',-2500,3200,-1200, 100, 100, 100, blue, blockColor],
+            ['cube',-2400,3300,-900, 100, 100, 100, blue, blockColor],
+            ['cube',-2200,3400,-600, 100, 100, 100, blue, blockColor],
+            ['cube',-2100,3500,-300, 100, 100, 100, blue, blockColor],
+            ['cube',-1900,3600,0, 100, 100, 100, blue, blockColor],
+            ['cube',-1600,3700,100, 100, 100, 100, blue, blockColor],
+            ['cube',-1300,3800,100, 100, 100, 100, blue, blockColor],
+            ['cube',-1000,3900,0, 100, 100, 100, blue, blockColor],
+            ['cube',-800,4000,-200, 100, 100, 100, checkpointColor, checkpointColor],
+            ['cube',-1000,4100,-500, 100, 100, 100, iceColor, iceColor],
+            ['cube',-1100,4200,-800, 100, 100, 100, iceColor, iceColor],
+            ['cube',-1300,4300,-1100, 100, 100, 100, iceColor, iceColor],
+            ['cube',-1500,4400,-1400, 100, 100, 100, iceColor, iceColor],
+            ['cube',-1800,4500,-1600, 100, 100, 100, iceColor, iceColor],
+            ['cube',-2100,4600,-1800, 100, 100, 100, iceColor, iceColor],
+            ['cube',-2100,4700,-2100, 100, 100, 100, iceColor, iceColor],
+            ['cube',-2100,4800,-2500, 100, 100, 100, iceColor, iceColor],
+            ['cube',-2100,4900,-2900, 100, 100, 100, iceColor, iceColor],
+            ['cube',-2100,5000,-3300, 100, 100, 100, iceColor, iceColor],
+            ['cube',-2200,5100,-3700, 100, 100, 100, iceColor, iceColor],
+            ['cube',-2300,5200,-4100, 100, 100, 100, iceColor, iceColor],
+            ['cube',-2600,5300,-4400, 100, 100, 100, iceColor, iceColor],
+            ['cube',-2800,5400,-4700, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3100,5500,-5000, 100, 100, 100,checkpointColor, checkpointColor],
+            ['cube',-3100,5600,-4700, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3100,5700,-4500, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3200,5800,-4600, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3000,5900,-4600, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3000,6000,-4400, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3200,6100,-4400, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3200,6200,-4600, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3000,6300,-4600, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3000,6400,-4400, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3200,6500,-4400, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3200,6600,-4600, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3000,6700,-4600, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3000,6800,-4400, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3200,6900,-4400, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3200,7000,-4600, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3000,7100,-4600, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3000,7200,-4400, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3200,7300,-4400, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3200,7400,-4600, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3000,7500,-4600, 100, 100, 100, checkpointColor, checkpointColor],
+            ['cube',-3000,7500,-5000, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3000,7500,-5500, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3000,7500,-6100, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3000,7500,-6700, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3000,7500,-7300, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3000,7500,-7900, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3000,7500,-8500, 100, 100, 100, iceColor, iceColor],
+            ['cube',-3000,7500,-9100, 100, 100, 100, blueEndColor, blueEndColor],
+
+            ['tile', -100, 0, -100, 100, 100, tileColor],
+            ['tile', 0, 0, -100, 100, 100, green],
+            ['tile', 100, 0, -100, 100, 100, tileColor],
+            ['tile', -100, 0, 0, 100, 100, blue],
+            ['cube',0,-100,0, 100, 100, 100, checkpointColor, checkpointColor],
+            ['tile', 100, 0, 0, 100, 100, red],
+            ['tile', -100, 0, 100, 100, 100, blue],
+            ['tile', 0, 0, 100, 100, 100, green],
+            ['tile', 100, 0, 100, 100, 100, red],
+
+            ['tile', -600, 0, 100, 100, 100, tileColor],
+            ['tile', -600, 0, -100, 100, 100, tileColor],
+            ['tile', -600, 0, 0, 100, 100, blue],
+            ['tile', -500, 0, 100, 100, 100, tileColor],
+            ['tile', -500, 0, -100, 100, 100, tileColor],
+            ['tile', -500, 0, 0, 100, 100, blue],
+            ['tile', -400, 0, -100, 100, 100, tileColor],
+            ['tile', -400, 0, 0, 100, 100, blue],
+            ['tile', -400, 0, 100, 100, 100, tileColor],
+            ['tile', -300, 0, -100, 100, 100, tileColor],
+            ['tile', -300, 0, 0, 100, 100, blue],
+            ['tile', -300, 0, 100, 100, 100, tileColor],
+            ['tile', -200, 0, 100, 100, 100, tileColor],
+            ['tile', -200, 0, -100, 100, 100, tileColor],
+            ['tile', -200, 0, 0, 100, 100, blue],
+
+            ['tile', -100, 0, -600, 100, 100, tileColor],
+            ['tile', 0, 0, -600, 100, 100, green],
+            ['tile', 100, 0, -600, 100, 100, tileColor],
+            ['tile', -100, 0, -500, 100, 100, tileColor],
+            ['tile', 0, 0, -500, 100, 100, green],
+            ['tile', 100, 0, -500, 100, 100, tileColor],
+            ['tile', -100, 0, -400, 100, 100, tileColor],
+            ['tile', 0, 0, -400, 100, 100, green],
+            ['tile', 100, 0, -400, 100, 100, tileColor],
+            ['tile', -100, 0, -300, 100, 100, tileColor],
+            ['tile', 0, 0, -300, 100, 100, green],
+            ['tile', 100, 0, -300, 100, 100, tileColor],
+            ['tile', -100, 0, -200, 100, 100, tileColor],
+            ['tile', 0, 0, -200, 100, 100, green],
+            ['tile', 100, 0, -200, 100, 100, tileColor],
+
+            ['tile', 200, 0, -100, 100, 100, tileColor],
+            ['tile', 200, 0, 100, 100, 100, tileColor],
+            ['tile', 200, 0, 0, 100, 100, red],
+            ['tile', 300, 0, -100, 100, 100, tileColor],
+            ['tile', 300, 0, 100, 100, 100, tileColor],            
+            ['tile', 300, 0, 0, 100, 100, red],
+            ['tile', 400, 0, 0, 100, 100, red],
+            ['tile', 400, 0, 100, 100, 100, tileColor],
+            ['tile', 400, 0, -100, 100, 100, tileColor],
+            ['tile', 500, 0, 0, 100, 100, red],
+            ['tile', 500, 0, 100, 100, 100, tileColor],
+            ['tile', 500, 0, -100, 100, 100, tileColor],
+            ['tile', 600, 0, 0, 100, 100, red],
+            ['tile', 600, 0, 100, 100, 100, tileColor],
+            ['tile', 600, 0, -100, 100, 100, tileColor],
+
+
+            ['tile', -100, 0, 200, 100, 100, blue],
+            ['tile', 0, 0, 200, 100, 100, green],
+            ['tile', 100, 0, 200, 100, 100, red],
+            ['tile', -100, 0, 300, 100, 100, blue],
+            ['tile', 0, 0, 300, 100, 100, green],
+            ['tile', 100, 0, 300, 100, 100, red],
+            ['tile', -100, 0, 400, 100, 100, blue],
+            ['tile', 0, 0, 400, 100, 100, green],
+            ['tile', 100, 0, 400, 100, 100, red],
+            ['tile', -100, 0, 500, 100, 100, blue],
+            ['tile', 0, 0, 500, 100, 100, green],
+            ['tile', 100, 0, 500, 100, 100, red],
+            ['tile', -100, 0, 600, 100, 100, blue],
+            ['tile', 0, 0, 600, 100, 100, green],
+            ['tile', 100, 0, 600, 100, 100, red],
+            ['tile', -100, 0, 700, 100, 100, blue],
+            ['tile', 0, 0, 700, 100, 100, green],
+            ['tile', 100, 0, 700, 100, 100, red],
+
+            ['tile', 200, 0, 200, 100, 100, tileColor],
+            ['tile', -200, 0, 200, 100, 100, tileColor],
+            ['tile', 200, 0, -200, 100, 100, tileColor],
+            ['tile', -200, 0, -200, 100, 100, tileColor],
+            ['cube',-100,-100,800, 100, 100, 100, blue, blue],
+            ['cube',0,-100,800, 100, 100, 100, green, green],
+            ['cube',100,-100,800, 100, 100, 100, red, red],
+
+
+            ['cube',0,-100,900, 100, 100, 100, green, green],
+            ['cube',-100,-100,900, 100, 100, 100, blue, blue],
+            ['cube',100,-100,900, 100, 100, 100, red, red],
+            ['cube',0,-200,900, 100, 100, 100, black, black],
+            ['cube',-100,-200,900, 100, 100, 100, black, black],
+            ['cube',100,-200,900, 100, 100, 100, black, black],
+            ['cube',-200,-100,900, 100, 100, 100, black, black],
+            ['cube',200,-100,900, 100, 100, 100, black, black],
+            ['cube',-200,0,900, 100, 100, 100, black, black],
+            ['cube',200,0,900, 100, 100, 100, black, black],
+            ['cube',-200,100,900, 100, 100, 100, black, black],
+            ['cube',200,100,900, 100, 100, 100, black, black],
+            ['cube',-200,200,900, 100, 100, 100, black, black],
+            ['cube',200,200,900, 100, 100, 100, black, black],
+            ['cube',0,300,900, 100, 100, 100, black, black],
+            ['cube',-100,300,900, 100, 100, 100, black, black],
+            ['cube',100,300,900, 100, 100, 100, black, black],
+
+            ['cube',0,-100,1000, 100, 100, 100, green, green],
+            ['cube',-100,-100,1000, 100, 100, 100, blue, blue],
+            ['cube',100,-100,1000, 100, 100, 100, red, red],
+            ['cube',0,-200,1000, 100, 100, 100, black, black],
+            ['cube',-100,-200,1000, 100, 100, 100, black, black],
+            ['cube',100,-200,1000, 100, 100, 100, black, black],
+            ['cube',-200,-100,1000, 100, 100, 100, black, black],
+            ['cube',200,-100,1000, 100, 100, 100, black, black],
+            ['cube',-200,0,1000, 100, 100, 100, black, black],
+            ['cube',200,0,1000, 100, 100, 100, black, black],
+            ['cube',-200,100,1000, 100, 100, 100, black, black],
+            ['cube',200,100,1000, 100, 100, 100, black, black],
+            ['cube',-200,200,1000, 100, 100, 100, black, black],
+            ['cube',200,200,1000, 100, 100, 100, black, black],
+            ['cube',0,300,1000, 100, 100, 100, black, black],
+            ['cube',-100,300,1000, 100, 100, 100, black, black],
+            ['cube',100,300,1000, 100, 100, 100, black, black],
+
+            ['cube',0,-100,1100, 100, 100, 100, green, green],
+            ['cube',-100,-100,1100, 100, 100, 100, blue, blue],
+            ['cube',100,-100,1100, 100, 100, 100, red, red],
+            ['cube',0,-200,1100, 100, 100, 100, black, black],
+            ['cube',-100,-200,1100, 100, 100, 100, black, black],
+            ['cube',100,-200,1100, 100, 100, 100, black, black],
+            ['cube',-200,-100,1100, 100, 100, 100, black, black],
+            ['cube',200,-100,1100, 100, 100, 100, black, black],
+            ['cube',-200,0,1100, 100, 100, 100, black, black],
+            ['cube',200,0,1100, 100, 100, 100, black, black],
+            ['cube',-200,100,1100, 100, 100, 100, black, black],
+            ['cube',200,100,1100, 100, 100, 100, black, black],
+            ['cube',-200,200,1100, 100, 100, 100, black, black],
+            ['cube',200,200,1100, 100, 100, 100, black, black],
+            ['cube',0,300,1100, 100, 100, 100, black, black],
+            ['cube',-100,300,1100, 100, 100, 100, black, black],
+            ['cube',100,300,1100, 100, 100, 100, black, black],
+
+            ['cube',0,-100,1200, 100, 100, 100, white, white],
+            ['cube',-100,-100,1200, 100, 100, 100, white, white],
+            ['cube',100,-100,1200, 100, 100, 100, white, white],
+            ['cube',0,-200,1200, 100, 100, 100, black, black],
+            ['cube',-100,-200,1200, 100, 100, 100, black, black],
+            ['cube',100,-200,1200, 100, 100, 100, black, black],
+            ['cube',-200,-100,1200, 100, 100, 100, black, black],
+            ['cube',200,-100,1200, 100, 100, 100, black, black],
+            ['cube',-200,0,1200, 100, 100, 100, black, black],
+            ['cube',200,0,1200, 100, 100, 100, black, black],
+            ['cube',-200,100,1200, 100, 100, 100, black, black],
+            ['cube',200,100,1200, 100, 100, 100, black, black],
+            ['cube',-200,200,1200, 100, 100, 100, black, black],
+            ['cube',200,200,1200, 100, 100, 100, black, black],
+            ['cube',0,300,1200, 100, 100, 100, black, black],
+            ['cube',-100,300,1200, 100, 100, 100, black, black],
+            ['cube',100,300,1200, 100, 100, 100, black, black],
+
+            ['cube',0,-100,1300, 100, 100, 100, black, black],
+            ['cube',-100,-100,1300, 100, 100, 100, black, black],
+            ['cube',100,-100,1300, 100, 100, 100, black, black],
+            ['cube',0,0,1300, 100, 100, 100, black, black],
+            ['cube',-100,0,1300, 100, 100, 100, black, black],
+            ['cube',100,0,1300, 100, 100, 100, black, black],
+            ['cube',0,100,1300, 100, 100, 100, black, black],
+            ['cube',-100,100,1300, 100, 100, 100, black, black],
+            ['cube',100,100,1300, 100, 100, 100, black, black],
+        ]
+        //cubelist
+        var platforms = []
+        for (i = 0; i < objects.length; i++) {
+            if (objects[i][0] == 'cube') {
+                platforms.push([
+                    [objects[i][1], objects[i][2], objects[i][3]],
+                    [objects[i][1] + objects[i][4], objects[i][2], objects[i][3]],
+                    [objects[i][1], objects[i][2] + objects[i][5], objects[i][3]],
+                    [objects[i][1] + objects[i][4], objects[i][2] + objects[i][5], objects[i][3]],
+                    [objects[i][1], objects[i][2], objects[i][3] + objects[i][6]],
+                    [objects[i][1] + objects[i][4], objects[i][2], objects[i][3] + objects[i][6]],
+                    [objects[i][1], objects[i][2] + objects[i][5], objects[i][3] + objects[i][6]],
+                    [objects[i][1] + objects[i][4], objects[i][2] + objects[i][5], objects[i][3] + objects[i][6]],
+                    objects[i][7],
+                    objects[i][8],
+                ])
+            }
+            if (objects[i][0] == 'tile') {
+                platforms.push([
+                    [objects[i][1], objects[i][2], objects[i][3]],
+                    [objects[i][1] + objects[i][4], objects[i][2], objects[i][3]],
+                    [objects[i][1], objects[i][2], objects[i][3] + objects[i][5]],
+                    [objects[i][1] + objects[i][4], objects[i][2], objects[i][3] + objects[i][5]],
+                    objects[i][6]
+                ])
+            }
+        }
+
+        function die(){
+            position = [checkpoint[0], checkpoint[1], checkpoint[2]];                    
+            velocity = [0, 0, 0];
+            deaths++;
+            return `death`
+        }
+        function openDoors(){
+            redCompleted=true
+            greenCompleted=true
+            blueCompleted=true
+        }
+        function setCheckpoint(){
+            checkpoint = [Math.floor(position[0] / 100) * 100 + 50, Math.floor((position[1]) / 100) * 100-100+playerSize[1], Math.floor(position[2] / 100) * 100 + 50]
+            return `checkpoint set`
+        }
+        function tp(x, y, z){
+            position = [x, y+playerSize[1], z]
+            return `tp'd to ${x}, ${y}, ${z}`
+        }
+
+        function multiplyMatrices(a, b) {
+            return [[a[0][0]*b[0][0]+a[0][1]*b[1][0]+a[0][2]*b[2][0]], [a[1][0]*b[0][0]+a[1][1]*b[1][0]+a[1][2]*b[2][0]], [a[2][0]*b[0][0]+a[2][1]*b[1][0]+a[2][2]*b[2][0]]]
+        }
+
+
+        refresh = setInterval(function () {
+            if (!done) {
+                if ((buttonsHeld[0] && buttonsHeld[1] && buttonsHeld[4]) || (buttonsHeld[0] && buttonsHeld[1] && buttonsHeld[5]) || (buttonsHeld[0] && buttonsHeld[4] && buttonsHeld[5]) || (buttonsHeld[1] && buttonsHeld[4] && buttonsHeld[5])) {
+                    var multiplyer = 1
+                } else if ((buttonsHeld[0] && buttonsHeld[4]) || (buttonsHeld[0] && buttonsHeld[5]) || (buttonsHeld[1] && buttonsHeld[4]) || (buttonsHeld[1] && buttonsHeld[5])) {
+                    var multiplyer = Math.sqrt(2) / 2
+                } else if (buttonsHeld[0] || buttonsHeld[1] || buttonsHeld[4] || buttonsHeld[5]) {
+                    var multiplyer = 1
+                }
+
+
+                if(redCompleted && blueCompleted && greenCompleted && !doorUnlocked){
+                    for (j=0; j<platforms.length; j++){
+                        if (platforms[j][9] != doorColor){
+                            tempDoor.push(platforms[j])
+                        }
+                    }
+                    doorUnlocked = true
+                    chatLogs.push("<br>Door unlocked!")
+                    platforms = tempDoor
+                }
+                if (buttonsHeld[1] && onGround) {
+                    //left movement
+                    velocity[0] += Math.cos(rotation[1]) * speed * multiplyer
+                    velocity[2] += Math.sin(rotation[1]) * speed * multiplyer
+                } else if (buttonsHeld[1]) {
+                    velocity[0] += Math.cos(rotation[1]) / 4 * speed * multiplyer
+                    velocity[2] += Math.sin(rotation[1]) / 4 * speed * multiplyer
+                }
+                if (buttonsHeld[0] && onGround) {
+                    //right movement
+                    velocity[0] -= Math.cos(rotation[1]) * speed * multiplyer
+                    velocity[2] -= Math.sin(rotation[1]) * speed * multiplyer
+                } else if (buttonsHeld[0]) {
+                    velocity[0] -= Math.cos(rotation[1]) / 4 * speed * multiplyer
+                    velocity[2] -= Math.sin(rotation[1]) / 4 * speed * multiplyer
+                }
+                if (buttonsHeld[2] && (onGround || onIce)) {
+                    //Jump
+                    velocity[1] = 13
+                    position[1]++
+                    if(onGround){
+                        velocity[0] = velocity[0] * 1.3
+                        velocity[2] = velocity[2] * 1.3
+                    }
+                    if(onIce){
+                        velocity[0] = velocity[0] * 1.6
+                        velocity[2] = velocity[2] * 1.6
+                    }
+
+                    
+                }
+                if (buttonsHeld[4] && onGround && buttonsHeld[3]) {
+                    //forwards movement
+                    velocity[2] -= Math.cos(rotation[1]) * 1.6 * speed * multiplyer
+                    velocity[0] += Math.sin(rotation[1]) * 1.6 * speed * multiplyer
+                } else if (buttonsHeld[4] && buttonsHeld[3]) {
+                    velocity[2] -= Math.cos(rotation[1]) * 1.6 / 4 * speed * multiplyer
+                    velocity[0] += Math.sin(rotation[1]) * 1.6 / 4 * speed * multiplyer
+                } else if (buttonsHeld[4] && onGround) {
+                    velocity[2] -= Math.cos(rotation[1]) * speed * multiplyer
+                    velocity[0] += Math.sin(rotation[1]) * speed * multiplyer
+                } else if (buttonsHeld[4]) {
+                    velocity[2] -= Math.cos(rotation[1]) / 4 * speed * multiplyer
+                    velocity[0] += Math.sin(rotation[1]) / 4 * speed * multiplyer
+                }
+                if (buttonsHeld[5] && onGround) {
+                    //backwards movement
+                    velocity[2] += Math.cos(rotation[1]) * speed * multiplyer
+                    velocity[0] -= Math.sin(rotation[1]) * speed * multiplyer
+                } else if (buttonsHeld[5]) {
+                    velocity[2] += Math.cos(rotation[1]) / 4 * speed * multiplyer
+                    velocity[0] -= Math.sin(rotation[1]) / 4 * speed * multiplyer
+                }
+                if (buttonsHeld[8]) {
+                    //changeing yaw, turning left
+                    rotation[1] += 2 * Math.PI / 180
+                }
+                if (buttonsHeld[9]) {
+                    //changing yaw, turning right
+                    rotation[1] -= 2 * Math.PI / 180
+                }
+                if (buttonsHeld[7] && rotation[0] < Math.PI / 2) {
+                    //changing pitch, turning down
+                    rotation[0] += 2 * Math.PI / 180
+                }
+                if (buttonsHeld[6] && rotation[0] > -Math.PI / 2) {
+                    //changing pitch, turning up
+                    rotation[0] -= 2 * Math.PI / 180
+                }
+                if (buttonsHeld[11]){
+                    position = [50, 160, 50]
+                    velocity = [0, 0, 0]
+                    rotation = [0, 0]
+                    deaths++
+                }
+                /*if (buttonsHeld[10]) {
+
+                    var temp = ['cube', Math.floor(position[0] / 100) * 100, Math.floor((position[1] - playerSize[1]) / 100 - 0.3) * 100, Math.floor(position[2] / 100) * 100, 100, 100, 100]
+                    if (release) {
+
+                        console.log("[\'cube\'," +temp[1] + "," + temp[2] + "," + temp[3]+ ", 100, 100, 100")
+                        
+                        platforms.push([
+                            [temp[1], temp[2], temp[3]],
+                            [temp[1] + temp[4], temp[2], temp[3]],
+                            [temp[1], temp[2] + temp[5], temp[3]],
+                            [temp[1] + temp[4], temp[2] + temp[5], temp[3]],
+                            [temp[1], temp[2], temp[3] + temp[6]],
+                            [temp[1] + temp[4], temp[2], temp[3] + temp[6]],
+                            [temp[1], temp[2] + temp[5], temp[3] + temp[6]],
+                            [temp[1] + temp[4], temp[2] + temp[5], temp[3] + temp[6]],
+                            iceColor,
+                            iceColor
+                        ])
+                    }
+                    release = false
+                }
+                */
+
+
+
+
+
+
+
+
+                //overflow yaw
+                if (rotation[1] < -Math.PI) {
+                    rotation[1] += 2 * Math.PI
+                }
+                if (rotation[1] > Math.PI) {
+                    rotation[1] -= 2 * Math.PI
+                }
+                onGround = false
+                onIce = false
+                for (i = 0; i < platforms.length; i++) {
+                    if (platforms[i].length > 7){
+                        //wall collision
+                        if (position[0] - playerSize[0] + velocity[0] < platforms[i][1][0] && position[0] + playerSize[0] + velocity[0] > platforms[i][0][0] && position[1] - playerSize[1] + velocity[1] < platforms[i][2][1] && position[1] + velocity[1] + playerSize[3] > platforms[i][0][1] && position[2] - playerSize[2] >= platforms[i][4][2] && position[2] - playerSize[2] + velocity[2] < platforms[i][4][2]) {
+                            position[2] = platforms[i][4][2] + playerSize[2]
+                            velocity[2] = 0
+                        }
+                        if (position[0] - playerSize[0] + velocity[0] < platforms[i][1][0] && position[0] + playerSize[0] + velocity[0] > platforms[i][0][0] && position[1] - playerSize[1] + velocity[1] < platforms[i][2][1] && position[1] + velocity[1] + playerSize[3] > platforms[i][0][1] && position[2] + playerSize[2] <= platforms[i][0][2] && position[2] + playerSize[2] + velocity[2] > platforms[i][0][2]) {
+                            position[2] = - playerSize[2] + platforms[i][0][2]
+                            velocity[2] = 0
+                        }
+                        if (position[2] - playerSize[2] + velocity[2] < platforms[i][4][2] && position[2] + playerSize[2] + velocity[2] > platforms[i][0][2] && position[1] - playerSize[1] + velocity[1] < platforms[i][2][1] && position[1] + velocity[1] + playerSize[3] > platforms[i][0][1] && position[0] - playerSize[0] >= platforms[i][1][0] && position[0] - playerSize[0] + velocity[0] < platforms[i][1][0]) {
+                            position[0] = playerSize[0] + platforms[i][1][0]
+                            velocity[0] = 0
+                        }
+                        if (position[2] - playerSize[2] + velocity[2] < platforms[i][4][2] && position[2] + playerSize[2] + velocity[2] > platforms[i][0][2] && position[1] - playerSize[1] + velocity[1] < platforms[i][2][1] && position[1] + velocity[1] + playerSize[3] > platforms[i][0][1] && position[0] + playerSize[0] <= platforms[i][0][0] && position[0] + playerSize[0] + velocity[0] > platforms[i][0][0]) {
+                            position[0] = platforms[i][0][0] - playerSize[0]
+                            velocity[0] = 0
+                        }
+                        
+                        
+                        //floor collision
+                        if (position[2] - playerSize[2] + velocity[2] < platforms[i][4][2] && position[2] + playerSize[2] + velocity[2] > platforms[i][0][2] && position[0] - playerSize[0] + velocity[0] < platforms[i][1][0] && position[0] + playerSize[0] + velocity[0] > platforms[i][0][0] && ((position[1] - playerSize[1] >= platforms[i][2][1] && position[1] - playerSize[1] + velocity[1] < platforms[i][2][1]) || position[1] - playerSize[1] == platforms[i][2][1])) {
+                            position[1] = playerSize[1] + platforms[i][2][1]
+                            onGround = true
+                            if (platforms[i][8] == checkpointColor && !(platforms[i][0][0] == checkpoint[0]-50 && platforms[i][0][1]+100+playerSize[1] == checkpoint[1] && platforms[i][0][2] == checkpoint[2]-50)){
+                                checkpoint = [platforms[i][0][0] + 50, platforms[i][0][1]+100+playerSize[1], platforms[i][0][2] + 50]
+                                chatLogs.push("<br>checkpoint saved at " + [platforms[i][0][0] + 50, platforms[i][0][1]+100+playerSize[1], platforms[i][0][2] + 50])
+                            }
+                            if (platforms[i][8] == bouncePadColor){
+                                onGround = false
+                                velocity[1] = -velocity[1]*0.7
+                                if (velocity[1] < 2){
+                                    velocity[1] = 0
+                                    onGround = true
+                                } 
+                            }
+                            if (platforms[i][8] == iceColor){
+                                onGround = false
+                                onIce = true
+                            }
+                            if (platforms[i][8] == greenEndColor && !greenCompleted){
+                                for (j=0; j<platforms.length; j++){
+                                    if (platforms[j][8] == green && platforms[j].length > 7){
+                                        platforms[j][8] = "rgb(0, 255, 0)"
+                                    }
+                                    if (platforms[j][4] == green && platforms[j].length < 7){
+                                        platforms[j][4] = "rgb(0, 255, 0)"
+                                    }
+                                    greenCompleted = true
+                                }
+                                velocity = [0, 0, 0]
+                                position = [50, 160, 50]
+                                chatLogs.push("<br>green key unlocked!")
+                            }
+                            if (platforms[i][8] == redEndColor && !redCompleted){
+                                for (j=0; j<platforms.length; j++){
+                                    if (platforms[j][8] == red && platforms[j].length > 7){
+                                        platforms[j][8] = "rgb(255, 0, 0)"
+                                    }
+                                    if (platforms[j][4] == red && platforms[j].length < 7){
+                                        platforms[j][4] = "rgb(255, 0, 0)"
+                                    }
+                                    redCompleted = true
+                                }
+                                velocity = [0, 0, 0]
+                                position = [50, 160, 50]
+                                chatLogs.push("<br>red key unlocked!")
+                            }
+                            if (platforms[i][8] == blueEndColor&& !blueCompleted){
+                                for (j=0; j<platforms.length; j++){
+                                    if (platforms[j][8] == blue && platforms[j].length > 7){
+                                        platforms[j][8] = "rgb(0, 0, 255)"
+                                    }
+                                    if (platforms[j][4] == blue && platforms[j].length < 7){
+                                        platforms[j][4] = "rgb(0, 0, 255)"
+                                    }
+                                    blueCompleted = true
+                                }
+                                velocity = [0, 0, 0]
+                                position = [50, 160, 50]
+                                chatLogs.push("<br>blue key unlocked!")
+                            }
+                            if (platforms[i][8] == white){
+                                done=true
+                                chatLogs.push("<br>you have escaped!")
+                                rotation = [34/180*Math.PI, -42/180*Math.PI]
+                                position = [5000, 8000, 3000]
+                            }
+                        }
+                        //ceiling collision
+                        
+                        if (position[2] - playerSize[2] + velocity[2] < platforms[i][4][2] && position[2] + playerSize[2] + velocity[2] > platforms[i][0][2] && position[0] - playerSize[0] + velocity[0] < platforms[i][1][0] && position[0] + playerSize[0] + velocity[0] > platforms[i][0][0] && position[1] + playerSize[3] <= platforms[i][0][1] && position[1] + velocity[1] + playerSize[3] > platforms[i][0][1]) {
+                            velocity[1] = 0
+                            position[1] = -playerSize[3] + platforms[i][0][1]
+                        }
+                    }
+                    if (platforms[i].length < 7){
+                        if (position[2] - playerSize[2] + velocity[2] < platforms[i][2][2] && position[2] + playerSize[2] + velocity[2] > platforms[i][0][2] && position[0] + playerSize[0] + velocity[0] > platforms[i][0][0] && position[0] - playerSize[0] + velocity[0] < platforms[i][1][0] && position[1] - playerSize[1] >= platforms[i][0][1] && position[1] - playerSize[1] + velocity[1] < platforms[i][0][1]){
+                        position[1] = playerSize[1] + platforms[i][0][1]
+                        onGround = true
+                        
+                    }
+                    }
+                }
+
+                if (onGround || onIce) {
+                    velocity[1] = 0
+                }
+                if (position[1] <= -500){
+                    die()
+                }
+                if (position[2]+velocity[2] > 800-playerSize[2] && !doorUnlocked){
+                    position[2] = 800-playerSize[2]
+                    velocity[2] = 0
+                }
+                if (position[2] > 900 && velocity[2]<0){
+                    velocity[2] = 0 
+                }
+                if (position[2] > 900 && position[0]>playerSize[0]+50 && velocity[0]>0){
+                    velocity[0] = 0 
+                }
+                if (position[2] > 900 && position[0]<-playerSize[0]+50 && velocity[0]<0){
+                    velocity[0] = 0 
+                }
+                position[0] += velocity[0]
+                position[1] += velocity[1]
+                position[2] += velocity[2]
+                if (!onGround && !onIce) {
+                    velocity[1] -= 0.7
+                }
+
+                if (onGround) {
+                    velocity[0] = velocity[0] / 1.4
+                    velocity[2] = velocity[2] / 1.4
+                } else {
+                    velocity[0] = velocity[0] / 1.07
+                    velocity[2] = velocity[2] / 1.07
+                }
+                if (Math.abs(velocity[0]) < 0.0001) {
+                    velocity[0] = 0
+                }
+                if (Math.abs(velocity[1]) < 0.0001) {
+                    velocity[1] = 0
+                }
+                if (Math.abs(velocity[2]) < 0.0001) {
+                    velocity[2] = 0
+                }
+
+               
+
+
+                
+                document.getElementById("coordinates").innerHTML = `x: ${Math.floor(position[0])}, y: ${Math.floor(position[1]) - playerSize[1]}, z: ${Math.floor(position[2])}, yaw: ${Math.round(rotation[1] / Math.PI * 180)}, pitch: ${Math.round(rotation[0] / Math.PI * 180)}, time: ${Math.ceil(timer)}, deaths: ${deaths}`;
+                document.getElementById("chat").innerHTML = chatLogs
+            }
+        }, 50/3);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        refresh = setInterval(function () {
+            timer += 1
+        }, 1000)
+
+
+
+
+
+
+        refresh = setInterval(function () {
+            if (!done) {
+                context.fillStyle = backgroundColor
+                context.fillRect(0, 0, sx * 2, sy * 2)
+
+                rotate = [
+                    [Math.cos(rotation[1]), 0, Math.sin(rotation[1])],
+                    [Math.sin(rotation[0])*Math.sin(rotation[1]), Math.cos(rotation[0]), -Math.sin(rotation[0])*Math.cos(rotation[1])],
+                    [-Math.cos(rotation[0])*Math.sin(rotation[1]), Math.sin(rotation[0]), Math.cos(rotation[0])*Math.cos(rotation[1])]
+                ]
+                    
+                //sorting platforms
+                platforms.sort(function (a, b) {
+                    return (b[0][0] - position[0] + 50) ** 2 + (b[0][1] - position[1] + 50) ** 2 + (b[0][2] - position[2] + 50) ** 2 - (a[0][0] - position[0] + 50) ** 2 - (a[0][1] - position[1] + 50) ** 2 - (a[0][2] - position[2] + 50) ** 2;
+                });
+
+
+                var drawCube = [[0, 1, 3, 2], [4, 5, 7, 6], [0, 1, 5, 4], [0, 2, 6, 4], [1, 3, 7, 5], [2, 3, 7, 6]]
+                for (i = 0; i < platforms.length; i++) {
+                    if (platforms[i].length > 7){
+                        var newCube = []
+                        var points = []
+                        for (j = 0; j < 8; j++) {
+                            newCube.push(multiplyMatrices(rotate, [[platforms[i][j][0] - position[0]], [platforms[i][j][1] - position[1]], [platforms[i][j][2] - position[2]]]))
+                            points.push([sx + (newCube[j][0][0]) / (newCube[j][2][0]) * sx / Math.tan(fov / 180 * Math.PI), sy + (newCube[j][1][0]) / (newCube[j][2][0]) * sy])
+                        }
+                        context.beginPath();
+                        for (j = 0; j < 6; j++) {
+                            if (((Math.abs(points[drawCube[j][0]][0] - sx) <= sx && Math.abs(points[drawCube[j][0]][1] - sy) <= sy) || (Math.abs(points[drawCube[j][1]][0] - sx) <= sx && Math.abs(points[drawCube[j][1]][1] - sy) <= sy) || (Math.abs(points[drawCube[j][2]][0] - sx) <= sx && Math.abs(points[drawCube[j][2]][1] - sy) <= sy) || (Math.abs(points[drawCube[j][3]][0] - sx) <= sx && Math.abs(points[drawCube[j][3]][1] - sy) <= sy)) && newCube[drawCube[j][0]][2] <= 0 && newCube[drawCube[j][1]][2] <= 0 && newCube[drawCube[j][2]][2] <= 0 && newCube[drawCube[j][3]][2] <= 0) {
+                                if ((j == 0 && position[2] < platforms[i][0][2]) || (j == 1 && position[2] > platforms[i][4][2]) || (j == 2 && position[1] < platforms[i][0][1]) || (j == 3 && position[0] < platforms[i][0][0]) || (j == 4 && position[0] > platforms[i][1][0]) || (j == 5 && position[1] > platforms[i][2][1])) {
+                                    context.moveTo(points[drawCube[j][0]][0], points[drawCube[j][0]][1]);
+                                    context.lineTo(points[drawCube[j][1]][0], points[drawCube[j][1]][1]);
+                                    context.lineTo(points[drawCube[j][2]][0], points[drawCube[j][2]][1]);
+                                    context.lineTo(points[drawCube[j][3]][0], points[drawCube[j][3]][1]);
+                                    context.closePath();
+                                    context.fillStyle = platforms[i][8];
+                                    context.strokeStyle = platforms[i][9];
+                                    context.fill();
+                                    context.stroke();
+                                }  
+                            } 
+                        }
+                    }
+                    if (platforms[i].length < 7) {
+                        var newTile = []
+                    var points = []
+                    for (j = 0; j < 4; j++) {
+                        newTile.push(multiplyMatrices(rotate, [[platforms[i][j][0] - position[0]], [platforms[i][j][1] - position[1]], [platforms[i][j][2] - position[2]]]))
+                        points.push([sx + (newTile[j][0][0]) / (newTile[j][2][0]) * sx / Math.tan(fov / 180 * Math.PI), sy + (newTile[j][1][0]) / (newTile[j][2][0]) * sy])
+                    }
+
+                    context.beginPath();
+
+                    if (newTile[0][2] <= 0 && newTile[1][2] <= 0 && newTile[2][2] <= 0 && newTile[3][2] <= 0) {
+
+                        context.moveTo(points[0][0], points[0][1]);
+                        context.lineTo(points[1][0], points[1][1]);
+                        context.lineTo(points[3][0], points[3][1]);
+                        context.lineTo(points[2][0], points[2][1]);
+                        context.closePath();
+                        context.fillStyle = platforms[i][4]
+                        context.strokeStyle = tileColor
+                        context.fill();
+                        context.stroke();
+                    }
+                    }
+                }
+
+                context.fillStyle = my_gradient
+                context.fillRect(0, 0, sx * 2, sy * 2)
+
+                document.getElementById("coordinates").innerHTML = `x: ${Math.floor(position[0])}, y: ${Math.floor(position[1]) - playerSize[1]}, z: ${Math.floor(position[2])}, yaw: ${Math.round(rotation[1] / Math.PI * 180)}, pitch: ${Math.round(rotation[0] / Math.PI * 180)}, time: ${Math.ceil(timer)}, deaths: ${deaths}`;
+                document.getElementById("chat").innerHTML = chatLogs
+            }
+        }, 100/3);
+        //right, left, up, down, forward, backward, up, down, left, right
+
+        document.addEventListener('keyup', function (event) {
+            if (event.keyCode == 65) {
+                buttonsHeld[1] = false;
+            }
+            if (event.keyCode == 68) {
+                buttonsHeld[0] = false;
+            }
+            if (event.keyCode == 87) {
+                buttonsHeld[4] = false;
+            }
+            if (event.keyCode == 83) {
+                buttonsHeld[5] = false;
+            }
+            if (event.keyCode == 32) {
+                buttonsHeld[2] = false;
+            }
+            if (event.keyCode == 16) {
+                buttonsHeld[3] = false;
+            }
+            if (event.keyCode == 37) {
+                buttonsHeld[8] = false;
+            }
+            if (event.keyCode == 39) {
+                buttonsHeld[9] = false;
+            }
+            if (event.keyCode == 38) {
+                buttonsHeld[6] = false;
+            }
+            if (event.keyCode == 40) {
+                buttonsHeld[7] = false;
+            }
+            if (event.keyCode == 81) {
+                buttonsHeld[10] = false;
+                release = true
+            }
+            if (event.keyCode == 82) {
+                buttonsHeld[11] = false;
+            }
+
+        })
+        //key down
+        document.addEventListener('keydown', function (event) {
+            if (event.keyCode == 65) {
+                buttonsHeld[1] = true;
+            }
+            if (event.keyCode == 68) {
+                buttonsHeld[0] = true;
+            }
+            if (event.keyCode == 87) {
+                buttonsHeld[4] = true;
+            }
+            if (event.keyCode == 83) {
+                buttonsHeld[5] = true;
+            }
+            if (event.keyCode == 32) {
+                buttonsHeld[2] = true;
+            }
+            if (event.keyCode == 16) {
+                buttonsHeld[3] = true;
+            }
+            if (event.keyCode == 37) {
+                buttonsHeld[8] = true;
+            }
+            if (event.keyCode == 39) {
+                buttonsHeld[9] = true;
+            }
+            if (event.keyCode == 38) {
+                buttonsHeld[6] = true;
+            }
+            if (event.keyCode == 40) {
+                buttonsHeld[7] = true;
+            }
+            if (event.keyCode == 81) {
+                buttonsHeld[10] = true;
+            }
+            if (event.keyCode == 82) {
+                buttonsHeld[11] = true;
+            }
+        })
+
+    </script>
+</body>
+
+</html>
